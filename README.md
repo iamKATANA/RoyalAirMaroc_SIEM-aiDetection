@@ -9,6 +9,10 @@ Ce projet propose une plateforme complète de **surveillance des logs réseau** 
 - et un **firewall animé** affichant les IPs critiques de manière graphique.
 
 ---
+### 🎥 Simulation vidéo
+
+[![Watch the video](https://www.youtube.com/watch?v=v2iiU-ZbBBU)
+
 
 ##  Fonctionnalités principales
 
