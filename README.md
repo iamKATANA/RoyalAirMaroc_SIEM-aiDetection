@@ -11,7 +11,7 @@ Ce projet propose une plateforme complète de **surveillance des logs réseau** 
 ---
 ### 🎥 Simulation vidéo
 
-[![Watch the video](https://www.youtube.com/watch?v=v2iiU-ZbBBU)
+[![Watch the video](https://img.youtube.com/vi/v2iiU-ZbBBU/0.jpg)](https://www.youtube.com/watch?v=v2iiU-ZbBBU)
 
 
 ##  Fonctionnalités principales
