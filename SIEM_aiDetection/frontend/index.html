@@ -1,0 +1,642 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Détection Anomalies - RAM</title>
+  <style>
+    body {
+      background-color: #0e1621;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .ranking-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #263238;
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.ranking-entry:hover {
+  background-color: #2f3b48;
+}
+
+.ranking-entry .info {
+  flex: 1;
+}
+
+.ranking-entry .actions {
+  display: flex;
+  gap: 8px;
+}
+
+.ranking-entry button {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.ranking-entry button:hover {
+  background-color: #b71c1c;
+}
+
+
+@keyframes pulseRed {
+  from { box-shadow: 0 0 5px #d32f2f; }
+  to { box-shadow: 0 0 15px red; }
+}
+
+    .critical-entry {
+  margin: 6px 0;
+  padding: 8px 12px;
+  background-color: #2c2c2c;
+  border-left: 4px solid red;
+  border-radius: 10px;
+  font-size: 14px;
+  animation: fadeInSlide 0.5s ease, pulseRedSoft 1.8s infinite alternate;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.critical-entry button {
+  padding: 4px 8px;
+  font-size: 0.85em;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.critical-entry button:hover {
+  background-color: #b71c1c;
+}
+
+@keyframes pulseRedSoft {
+  from { box-shadow: 0 0 5px #d32f2f; }
+  to { box-shadow: 0 0 12px red; }
+}
+
+    header {
+      background-color: #162b44;
+      text-align: center;
+      padding: 20px;
+      border-bottom: 2px solid #d32f2f;
+    }
+    header img {
+      max-width: 300px;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+    h2, h3 {
+      color: #ffcccb;
+    }
+    #logs, #chatbox, #ranking, #user-details, #critical-zone {
+      background-color: #1e2a38;
+      border: 1px solid #37474f;
+      border-radius: 12px;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    #logs { height: 300px; }
+    #chatbox { height: 300px; display: flex; flex-direction: column; }
+    #ranking, #user-details, #critical-zone { max-height: 300px; }
+
+    .log-entry {
+      margin: 4px 0;
+      padding: 5px 10px;
+      border-radius: 8px;
+      animation: fadeInSlide 0.3s ease-in-out;
+    }
+    .normal { background-color: #1b5e20; color: #a5d6a7; }
+    .anomaly_low { background-color: #f57c00; color: #fff3e0; }
+    .anomaly_medium { background-color: #d32f2f; color: #ffcdd2; }
+    .anomaly_high {
+      background-color: #000;
+      color: #f44336;
+      font-weight: bold;
+      animation: fadeInSlide 0.3s ease-in-out, pulseRed 1.5s infinite alternate;
+    }
+    .user, .bot {
+      padding: 10px 15px;
+      border-radius: 18px;
+      max-width: 70%;
+      margin: 8px 0;
+      word-wrap: break-word;
+      animation: fadeInSlide 0.3s ease-in-out;
+    }
+    .user {
+      background-color: #81d4fa;
+      color: #000;
+      align-self: flex-end;
+    }
+    .bot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px; 
+  margin: 10px 0;
+  max-width: 80%;
+  padding-left: 10px; 
+}
+
+
+.bot-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  max-width: 100%;
+}
+
+.bot-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+
+.bot-icon img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+}
+
+
+.message {
+  background-color: #2e3b57;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 18px;
+  line-height: 1.4em;
+  animation: fadeInSlide 0.3s ease-in-out;
+  word-wrap: break-word;
+  max-width: 300px;
+}
+#firewall-visual {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 10px;
+  background-color: #1e2a38;
+  padding: 15px;
+  border-radius: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.port-block {
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+  transition: background-color 0.5s;
+  background-color: #ffffff; 
+  color: #000;
+}
+
+
+
+    #chat-form {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    #user-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background-color: #263238;
+      color: white;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #d32f2f;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #b71c1c;
+    }
+    @keyframes fadeInSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes pulseRed {
+      from { box-shadow: 0 0 5px #d32f2f; }
+      to { box-shadow: 0 0 15px red; }
+    }
+    #firewall-connections {
+  position: relative;
+  height: 350px;
+  background-color: #0e1621;
+  border: 1px solid #37474f;
+  border-radius: 12px;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#firewall-center img {
+  width: 120px;
+  opacity: 0.85;
+  z-index: 2;
+}
+
+#ip-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.ip-fixed {
+  position: absolute;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ff3d3d;
+  white-space: nowrap;
+}
+
+
+@keyframes moveToFirewall {
+  to {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+}
+.ip-line {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #ff3d3d;
+  font-weight: bold;
+  white-space: nowrap;
+  animation: moveToFirewall 3.5s ease-in-out forwards;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ip-line::after {
+  content: '➡️';
+  margin-left: 8px;
+}
+
+
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="Royal Air Maroc" />
+  </header>
+  <main>
+    <div>
+      <h2>🔍 Logs Réseau en Temps Réel</h2>
+      <div id="logs"></div>
+
+      <h2>🤖 Assistant Cybersécurité</h2>
+      <div id="chatbox"></div>
+      <form id="chat-form">
+        <input type="text" id="user-input" placeholder="Posez une question..." />
+        <button type="submit">Envoyer</button>
+      </form>
+    </div>
+    <div>
+      <h2> Classement Suspects</h2>
+      <div id="ranking"></div>
+      <h3> Logs Critiques</h3>
+      <div id="critical-zone"></div>
+    </div>
+    <h3> Connexions Critiques vers le Firewall</h3>
+<div id="firewall-connections">
+  <div id="ip-container"></div>
+  <div id="firewall-center">
+    <img src="https://cdn-icons-png.flaticon.com/512/9377/9377903.png" alt="Firewall" />
+  </div>
+</div>
+
+
+  </main>
+
+  <script>
+    const logsDiv = document.getElementById("logs");
+    const chatbox = document.getElementById("chatbox");
+    const rankingDiv = document.getElementById("ranking");
+    const detailsDiv = document.getElementById("user-details");
+    const criticalDiv = document.getElementById("critical-zone");
+    const history = [];
+    const suspectUsers = {}; 
+    function normalizeUsername(name) {
+  return name.toLowerCase().replace(/[\s\-]/g, ".");
+}
+
+    function markdownToHtml(md) {
+      return md.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    }
+
+    const socket = new WebSocket("ws://localhost:8000/ws/logs");
+
+    const shownIPs = new Set();
+
+    socket.onmessage = function(event) {
+
+      const data = JSON.parse(event.data);
+      if (data.type === "log") {
+        const p = document.createElement("div");
+        p.className = `log-entry ${data.level}`;
+        p.innerHTML = data.message;
+        logsDiv.appendChild(p);
+        logsDiv.scrollTop = logsDiv.scrollHeight;
+        history.push(data.message);
+        if (history.length > 20) history.shift();
+      } else if (data.type === "critical") {
+  const div = document.createElement("div");
+  div.className = "critical-entry";
+  div.innerHTML = `<span><strong>${data.timestamp}</strong> - ${data.username} - ${data.ip} - ${data.action} - Port: <b>${data.port}</b></span>`;
+  const blockBtn = document.createElement("button");
+  blockBtn.textContent = " Block User";
+  blockBtn.onclick = () => alert("User " + data.username + " bloqué !");
+  div.appendChild(blockBtn);
+  criticalDiv.appendChild(div);
+
+    const ipContainer = document.getElementById("ip-container");
+
+  if (shownIPs.has(data.ip)) return;
+  shownIPs.add(data.ip);
+
+  const ipFixed = document.createElement("div");
+  ipFixed.className = "ip-fixed";
+  ipFixed.textContent = data.ip;
+
+  const angle = Math.random() * 2 * Math.PI;
+  const radius = 130;
+  const centerX = 50;
+  const centerY = 50;
+
+  const offsetX = Math.cos(angle) * radius;
+  const offsetY = Math.sin(angle) * radius;
+
+  ipFixed.style.left = `calc(${centerX}% + ${offsetX}px)`;
+  ipFixed.style.top = `calc(${centerY}% + ${offsetY}px)`;
+
+  ipContainer.appendChild(ipFixed);
+
+
+
+  setTimeout(() => {
+    if (ipContainer.contains(line)) {
+      ipContainer.removeChild(line);
+    }
+  }, 4000); 
+}
+
+
+ else if (data.type === "ranking") {
+
+  const existing = new Set();
+  rankingDiv.querySelectorAll(".ranking-entry").forEach(div => {
+    existing.add(div.dataset.username);
+  });
+
+  
+  
+
+  const newUsernames = data.ranking.map(u => u.username);
+  
+  rankingDiv.querySelectorAll(".ranking-entry").forEach(div => {
+    if (!newUsernames.includes(div.dataset.username)) div.remove();
+  });
+  
+
+data.ranking.forEach(entry => {
+  const cleanName = normalizeUsername(entry.username);
+  suspectUsers[cleanName] = entry;
+});
+
+  rankingDiv.innerHTML = "";  
+data.ranking.forEach((entry, i) => {
+  const div = document.createElement("div");
+  div.className = "rank-item"; 
+
+  div.innerHTML = `
+    <strong>#${i + 1}</strong> ${entry.username} : ${entry.count} action(s) suspecte(s)
+    <div style="margin-top: 8px;">
+      <button class="details-btn">Détails</button>
+      <button class="ai-btn">Analyse IA</button>
+    </div>
+  `;
+
+  div.querySelector(".details-btn").onclick = async () => {
+  const loader = document.createElement("div");
+  loader.className = "bot";
+  loader.textContent = " Chargement des détails...";
+  chatbox.appendChild(loader);
+
+  const res = await fetch(`http://localhost:8000/details/${entry.username}`);
+  const json = await res.json();
+  chatbox.removeChild(loader);
+
+  const logs = json.details;
+  let content = "";
+
+  if (typeof logs === "string") {
+    content = logs; 
+  } else {
+    content = logs
+      .slice(0, 5) 
+      .map(l => `- ${l.timestamp} | ${l.action} | ${l.status} | Port: ${l.port}`)
+      .join("<br>");
+  }
+
+
+  
+  const msg = document.createElement("div");
+  msg.className = "bot";
+  msg.innerHTML = `
+    <div class="bot-wrapper">
+      <div class="bot-icon">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="RAM" />
+      </div>
+      <div class="message">
+        <strong>📋 Détails pour ${entry.username} :</strong><br>${content}
+      </div>
+    </div>
+  `;
+  chatbox.appendChild(msg);
+  chatbox.scrollTop = chatbox.scrollHeight;
+};
+
+
+
+div.querySelector(".ai-btn").onclick = async () => {
+  const loading = document.createElement("div");
+  loading.className = "bot";
+  loading.textContent = " Assistant est en train d'écrire...";
+  chatbox.appendChild(loading);
+
+  const res = await fetch(`http://localhost:8000/analyze/${entry.username}`);
+  const json = await res.json();
+  chatbox.removeChild(loading);
+
+  const msg = document.createElement("div");
+  msg.className = "bot";
+  msg.innerHTML = `
+    <div class="bot-wrapper">
+      <div class="bot-icon">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="RAM">
+      </div>
+      <div class="message">${markdownToHtml(json.analysis)}</div>
+    </div>
+  `;
+  chatbox.appendChild(msg);
+  chatbox.scrollTop = chatbox.scrollHeight;
+};
+
+
+
+  rankingDiv.appendChild(div);
+});
+
+}
+
+    };
+
+    document.getElementById("chat-form").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const input = document.getElementById("user-input");
+  const question = input.value.trim();
+  if (!question) return;
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "user";
+  userMsg.textContent = question;
+  chatbox.appendChild(userMsg);
+  input.value = "";
+
+  const match = question.toLowerCase().match(/d[ée]tails.*de\s+([\w.\- ]+)/);
+if (match) {
+  const rawName = match[1];
+  const username = normalizeUsername(rawName);
+
+  if (suspectUsers[username]) {
+      const loading = document.createElement("div");
+      loading.className = "bot";
+      loading.textContent = `📄 Récupération des détails pour ${username}...`;
+      chatbox.appendChild(loading);
+
+      const res = await fetch(`http://localhost:8000/details/${username}`);
+      const json = await res.json();
+      chatbox.removeChild(loading);
+
+      const logs = json.details;
+      let content = "";
+
+      if (typeof logs === "string") {
+        content = logs;
+      } else {
+        content = logs
+          .slice(0, 5)
+          .map(l => `- ${l.timestamp} | ${l.action} | ${l.status} | Port: ${l.port}`)
+          .join("<br>");
+      }
+
+      const botMsg = document.createElement("div");
+      botMsg.className = "bot";
+      botMsg.innerHTML = `
+        <div class="bot-wrapper">
+          <div class="bot-icon">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="RAM" />
+          </div>
+          <div class="message">
+            <strong>📋 Détails pour ${username} :</strong><br>${content}
+          </div>
+        </div>`;
+      chatbox.appendChild(botMsg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      return;
+    } else {
+      const botMsg = document.createElement("div");
+      botMsg.className = "bot";
+      botMsg.innerHTML = `
+        <div class="bot-wrapper">
+          <div class="bot-icon">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="RAM" />
+          </div>
+          <div class="message">
+            ❌ Utilisateur "${username}" non trouvé dans le classement suspect.
+          </div>
+        </div>`;
+      chatbox.appendChild(botMsg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      return;
+    }
+  }
+
+  const loader = document.createElement("div");
+  loader.className = "bot";
+  loader.textContent = "✍️ Assistant est en train d'écrire...";
+  chatbox.appendChild(loader);
+
+  const res = await fetch("http://localhost:8000/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: question, logs_context: history })
+  });
+  chatbox.removeChild(loader);
+  const json = await res.json();
+
+  const botMsg = document.createElement("div");
+  botMsg.className = "bot";
+  botMsg.innerHTML = `
+    <div class="bot-wrapper">
+      <div class="bot-icon">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Logo_Royal_Air_Maroc.svg/2560px-Logo_Royal_Air_Maroc.svg.png" alt="RAM" />
+      </div>
+      <div class="message">${markdownToHtml(json.response)}</div>
+    </div>`;
+  chatbox.appendChild(botMsg);
+  chatbox.scrollTop = chatbox.scrollHeight;
+});
+
+  </script>
+</body>
+</html>
